@@ -1,37 +1,35 @@
 import React from 'react';
-import Sidebar from './Sidebar'; // Hakikisha path ni sahihi
+import { auth } from '../services/firebase';
+import { signOut } from 'firebase/auth';
 
 const HQLayout = ({ user }) => {
-  return (
-    <div className="flex min-h-screen bg-[#0b0f1a]">
-      {/* Sidebar ipo hapa */}
-      <Sidebar />
-      
-      {/* Sehemu ya Content */}
-      <main className="flex-1 p-8">
-        <header className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-2xl font-black text-white uppercase tracking-tight">
-              HQ CONTROL CENTER
-            </h1>
-            <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">
-              Welcome back, {user.email}
-            </p>
-          </div>
-          
-          <button 
-            onClick={() => auth.signOut()} 
-            className="bg-slate-800 hover:bg-red-600 text-white text-[10px] font-bold py-2 px-4 rounded-lg transition"
-          >
-            LOGOUT
-          </button>
-        </header>
+  
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      // Firebase will notify App.jsx, and you'll be sent to Login automatically
+      console.log("Logged out successfully");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
 
-        {/* Hapa ndipo kurasa zako (Fleet, Stations) zitakuwa zinatokea */}
-        <div className="bg-[#0f172a] border border-slate-800 rounded-3xl p-6">
-           <p className="text-slate-400">Select a section from the sidebar to manage FAB Operations.</p>
-        </div>
-      </main>
+  return (
+    <div className="min-h-screen bg-[#0b0f1a] text-white p-8">
+      <div className="flex justify-between items-center mb-10">
+        <h1 className="text-2xl font-black italic text-red-600">FAB HQ</h1>
+        <button 
+          onClick={handleLogout}
+          className="bg-red-600 hover:bg-red-700 px-6 py-2 rounded-xl font-bold transition"
+        >
+          Logout
+        </button>
+      </div>
+      
+      <div className="bg-[#0f172a] p-10 rounded-[2rem] border border-slate-800">
+        <h2 className="text-3xl font-bold">Welcome, {user?.displayName || 'Admin'}</h2>
+        <p className="text-slate-400 mt-2">You are now inside the Energy Systems Portal.</p>
+      </div>
     </div>
   );
 };
