@@ -1,16 +1,17 @@
 import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore"; // This adds the Database tool
+import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyA9paTHWS-839sCRw6AcFJUzleHCP8ZH5E",
-  authDomain: "fab-operations-prod-40cd3.firebaseapp.com",
-  projectId: "fab-operations-prod-40cd3",
-  storageBucket: "fab-operations-prod-40cd3.firebasestorage.app",
-  messagingSenderId: "125219522298",
-  appId: "1:125219522298:web:3a3fd181fba6cb093deb43"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
 const app = initializeApp(firebaseConfig);
-
-// This is the "Key" we will use to talk to your database
+export const auth = getAuth(app); // Hapa ndipo injini inapoanzia
 export const db = getFirestore(app);
+export default app;
