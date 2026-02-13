@@ -1,116 +1,169 @@
-import React, { useState } from 'react';
-import { db } from '../../services/firebase';
-import { collection, addDoc } from 'firebase/firestore';
+import React, { useState, useMemo } from 'react';
 
 const DailyReport = () => {
-  const [formData, setFormData] = useState({
-    manager: '',
-    pmsOpening: 0, pmsClosing: 0,
-    agoOpening: 0, agoClosing: 0,
-    cashCollected: 0,
-    mTpesa: 0,
-    bankDeposit: 0,
-    expenses: 0,
-    expenseNote: ''
+  const [report, setReport] = useState({
+    station: "MBAGALA",
+    date: new Date().toISOString().split('T')[0],
+    manager: "Osama Barahiyan",
+    pmsPrice: 2860,
+    agoPrice: 2870,
+    // Night Handover Section
+    nightHandover: { pmsSales: 0, agoSales: 0, cash: 0, tpesa: 0, mpesa: 0, bank: 0 },
+    // Pump Readings
+    pmsPumps: [
+      { id: 'P1', opening: 0, closing: 0, test: 0 },
+      { id: 'P2', opening: 0, closing: 0, test: 0 }
+    ],
+    agoPumps: [
+      { id: 'D1', opening: 0, closing: 0, test: 0 }
+    ],
+    // Expenses
+    expenses: [{ category: "Salaries", desc: "", amount: 0 }],
+    // Payments (Collections)
+    payments: { cash: 0, tpesa: 0, mpesa: 0, bank: 0 }
   });
 
-  // Business Logic
-  const pmsSales = Number(formData.pmsClosing) - Number(formData.pmsOpening);
-  const agoSales = Number(formData.agoClosing) - Number(formData.agoOpening);
-  
-  // Assuming current prices (you can make these inputs later)
-  const pmsPrice = 2860; 
-  const agoPrice = 2870;
-  const totalValue = (pmsSales * pmsPrice) + (agoSales * agoPrice);
-  
-  const totalAccounted = Number(formData.cashCollected) + Number(formData.mTpesa) + Number(formData.bankDeposit) + Number(formData.expenses);
-  const variance = totalAccounted - totalValue;
+  // --- AUTOMATIC CALCULATIONS (The "Excel" Logic) ---
+  const totals = useMemo(() => {
+    const calcNet = (pumps) => pumps.reduce((sum, p) => sum + (Number(p.closing) - Number(p.opening) - Number(p.test)), 0);
+    
+    const pmsNetLtrs = calcNet(report.pmsPumps);
+    const agoNetLtrs = calcNet(report.agoPumps);
+    
+    const pmsValue = pmsNetLtrs * report.pmsPrice;
+    const agoValue = agoNetLtrs * report.agoPrice;
+    const totalSalesValue = pmsValue + agoValue;
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await addDoc(collection(db, "daily_reports"), {
-        ...formData,
-        pmsSales, agoSales, totalValue, variance,
-        timestamp: new Date()
-      });
-      alert("✅ Mbagala Report Synced to HQ");
-    } catch (err) { alert(err.message); }
+    const totalExpenses = report.expenses.reduce((sum, ex) => sum + Number(ex.amount), 0);
+    const totalPayments = Object.values(report.payments).reduce((sum, val) => sum + Number(val), 0);
+    
+    return {
+      pmsNetLtrs, agoNetLtrs,
+      pmsValue, agoValue,
+      totalSalesValue,
+      totalExpenses,
+      totalPayments,
+      variance: totalPayments - (totalSalesValue - totalExpenses)
+    };
+  }, [report]);
+
+  const updatePump = (type, index, field, val) => {
+    const key = type === 'PMS' ? 'pmsPumps' : 'agoPumps';
+    const updated = [...report[key]];
+    updated[index][field] = val;
+    setReport({ ...report, [key]: updated });
   };
 
+  // --- STYLING ---
+  const cardStyle = { backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '25px', borderRadius: '20px', marginBottom: '20px' };
+  const inputStyle = { backgroundColor: '#1e293b', border: '1px solid #334155', color: 'white', padding: '10px', borderRadius: '8px', width: '100%' };
+  const labelStyle = { color: '#64748b', fontSize: '0.75rem', fontWeight: '900', display: 'block', marginBottom: '8px' };
+
   return (
-    <div className="min-h-screen bg-slate-50 font-sans p-4">
-      <div className="max-w-5xl mx-auto bg-white shadow-2xl rounded-3xl overflow-hidden border border-slate-200">
+    <div style={{ maxWidth: '1200px', margin: 'auto', padding: '40px', color: 'white', fontFamily: 'Inter, sans-serif' }}>
+      
+      {/* Top Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '40px' }}>
+        <div>
+          <h1 style={{ fontSize: '2.5rem', fontWeight: '900', margin: 0 }}>DAILY <span style={{ color: '#dc2626' }}>REPORT</span></h1>
+          <p style={{ color: '#64748b' }}>STATION: {report.station} | MANAGER: {report.manager}</p>
+        </div>
+        <div style={{ display: 'flex', gap: '20px' }}>
+          <div><label style={labelStyle}>PMS PRICE</label><input type="number" style={{...inputStyle, width: '100px'}} value={report.pmsPrice} onChange={e => setReport({...report, pmsPrice: e.target.value})}/></div>
+          <div><label style={labelStyle}>AGO PRICE</label><input type="number" style={{...inputStyle, width: '100px'}} value={report.agoPrice} onChange={e => setReport({...report, agoPrice: e.target.value})}/></div>
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '30px' }}>
         
-        {/* Header */}
-        <div className="bg-slate-900 p-8 text-white flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-black tracking-tighter text-red-500">FAB <span className="text-white">INTERNATIONAL</span></h1>
-            <p className="text-xs uppercase tracking-widest opacity-60">Mbagala Station Terminal</p>
-          </div>
-          <div className="text-right">
-            <p className="text-xs opacity-60 italic">Shift Status</p>
-            <p className="font-bold text-green-400">● LIVE CONNECTION</p>
-          </div>
+        {/* Left Column: Data Entry */}
+        <div>
+          {/* Night Handover Section */}
+          <section style={cardStyle}>
+            <h3 style={{ margin: '0 0 20px 0', fontSize: '1rem', color: '#dc2626' }}>NIGHT SHIFT HANDOVER</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px' }}>
+              <input style={inputStyle} placeholder="Night PMS Sales" type="number" onChange={e => setReport({...report, nightHandover: {...report.nightHandover, pmsSales: e.target.value}})}/>
+              <input style={inputStyle} placeholder="Night AGO Sales" type="number" onChange={e => setReport({...report, nightHandover: {...report.nightHandover, agoSales: e.target.value}})}/>
+              <input style={inputStyle} placeholder="Cash Handover" type="number" onChange={e => setReport({...report, nightHandover: {...report.nightHandover, cash: e.target.value}})}/>
+            </div>
+          </section>
+
+          {/* PMS Pump Readings */}
+          <section style={cardStyle}>
+            <h3 style={{ margin: '0 0 20px 0', fontSize: '1rem', color: '#4ade80' }}>PMS METER READINGS (PETROL)</h3>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead><tr style={labelStyle}><th align="left">PUMP</th><th align="left">OPENING</th><th align="left">CLOSING</th><th align="left">TEST</th></tr></thead>
+              <tbody>
+                {report.pmsPumps.map((p, i) => (
+                  <tr key={p.id}>
+                    <td style={{ padding: '10px 0', fontWeight: 'bold' }}>{p.id}</td>
+                    <td><input style={inputStyle} type="number" value={p.opening} onChange={e => updatePump('PMS', i, 'opening', e.target.value)}/></td>
+                    <td><input style={inputStyle} type="number" value={p.closing} onChange={e => updatePump('PMS', i, 'closing', e.target.value)}/></td>
+                    <td><input style={inputStyle} type="number" value={p.test} onChange={e => updatePump('PMS', i, 'test', e.target.value)}/></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
+
+          {/* AGO Pump Readings */}
+          <section style={cardStyle}>
+            <h3 style={{ margin: '0 0 20px 0', fontSize: '1rem', color: '#fbbf24' }}>AGO METER READINGS (DIESEL)</h3>
+            {report.agoPumps.map((p, i) => (
+              <div key={p.id} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '15px', alignItems: 'center' }}>
+                <span style={{ fontWeight: 'bold' }}>{p.id}</span>
+                <input style={inputStyle} type="number" placeholder="Opening" onChange={e => updatePump('AGO', i, 'opening', e.target.value)}/>
+                <input style={inputStyle} type="number" placeholder="Closing" onChange={e => updatePump('AGO', i, 'closing', e.target.value)}/>
+                <input style={inputStyle} type="number" placeholder="Test" onChange={e => updatePump('AGO', i, 'test', e.target.value)}/>
+              </div>
+            ))}
+          </section>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-8 space-y-10">
-          {/* Section 1: Meters */}
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="p-6 bg-blue-50 rounded-2xl border border-blue-100">
-              <h2 className="text-blue-800 font-bold mb-4 italic">PMS METER READINGS</h2>
-              <div className="space-y-3">
-                <input type="number" placeholder="Opening" className="w-full p-3 rounded-lg border" onChange={(e)=>setFormData({...formData, pmsOpening: e.target.value})} />
-                <input type="number" placeholder="Closing" className="w-full p-3 rounded-lg border" onChange={(e)=>setFormData({...formData, pmsClosing: e.target.value})} />
-                <p className="text-sm font-bold text-blue-600 uppercase">Sales: {pmsSales} L</p>
+        {/* Right Column: Summaries & Payments */}
+        <div>
+          {/* Payment Methods */}
+          <section style={{ ...cardStyle, border: '1px solid #4ade80' }}>
+            <h3 style={{ margin: '0 0 20px 0', fontSize: '1rem' }}>PAYMENT METHODS (COLLECTIONS)</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div><label style={labelStyle}>CASH DROPS</label><input style={inputStyle} type="number" onChange={e => setReport({...report, payments: {...report.payments, cash: e.target.value}})}/></div>
+              <div><label style={labelStyle}>T-PESA</label><input style={inputStyle} type="number" onChange={e => setReport({...report, payments: {...report.payments, tpesa: e.target.value}})}/></div>
+              <div><label style={labelStyle}>M-PESA</label><input style={inputStyle} type="number" onChange={e => setReport({...report, payments: {...report.payments, mpesa: e.target.value}})}/></div>
+              <div><label style={labelStyle}>BANK POS</label><input style={inputStyle} type="number" onChange={e => setReport({...report, payments: {...report.payments, bank: e.target.value}})}/></div>
+            </div>
+          </section>
+
+          {/* Real-time Summary Sheet */}
+          <section style={{ ...cardStyle, backgroundColor: '#1e293b' }}>
+            <h3 style={{ margin: '0 0 20px 0', fontSize: '1rem', fontWeight: '900' }}>DAILY SUMMARY</h3>
+            <div style={{ fontSize: '0.9rem', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Total PMS Sales:</span> <span>{totals.pmsNetLtrs.toLocaleString()} L</span></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Total AGO Sales:</span> <span>{totals.agoNetLtrs.toLocaleString()} L</span></div>
+              <hr style={{ border: '0.1px solid #334155' }} />
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold' }}><span>Total Sales Value:</span> <span>TZS {totals.totalSalesValue.toLocaleString()}</span></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#f87171' }}><span>Expenses:</span> <span>- TZS {totals.totalExpenses.toLocaleString()}</span></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#4ade80', fontWeight: 'bold', fontSize: '1.1rem', marginTop: '10px' }}>
+                <span>NET COLLECTIONS:</span> 
+                <span>TZS {totals.totalPayments.toLocaleString()}</span>
+              </div>
+              <div style={{ 
+                marginTop: '15px', 
+                padding: '10px', 
+                borderRadius: '8px', 
+                backgroundColor: totals.variance === 0 ? 'rgba(74, 222, 128, 0.1)' : 'rgba(220, 38, 38, 0.1)',
+                textAlign: 'center',
+                fontWeight: 'bold',
+                color: totals.variance === 0 ? '#4ade80' : '#f87171'
+              }}>
+                VARIANCE: TZS {totals.variance.toLocaleString()}
               </div>
             </div>
+          </section>
 
-            <div className="p-6 bg-orange-50 rounded-2xl border border-orange-100">
-              <h2 className="text-orange-800 font-bold mb-4 italic">AGO METER READINGS</h2>
-              <div className="space-y-3">
-                <input type="number" placeholder="Opening" className="w-full p-3 rounded-lg border" onChange={(e)=>setFormData({...formData, agoOpening: e.target.value})} />
-                <input type="number" placeholder="Closing" className="w-full p-3 rounded-lg border" onChange={(e)=>setFormData({...formData, agoClosing: e.target.value})} />
-                <p className="text-sm font-bold text-orange-600 uppercase">Sales: {agoSales} L</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Section 2: Money Reconciliation */}
-          <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200">
-            <h2 className="font-black text-slate-800 mb-6 flex items-center">
-              CASH RECONCILIATION <span className="ml-4 text-sm font-normal text-slate-400">Total Sales Value: TZS {totalValue.toLocaleString()}</span>
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="flex flex-col">
-                <label className="text-[10px] font-bold text-slate-400 mb-1 uppercase">Physical Cash</label>
-                <input type="number" className="p-3 border rounded-xl" placeholder="TZS" onChange={(e)=>setFormData({...formData, cashCollected: e.target.value})} />
-              </div>
-              <div className="flex flex-col">
-                <label className="text-[10px] font-bold text-slate-400 mb-1 uppercase">M-Pesa / T-Pesa</label>
-                <input type="number" className="p-3 border rounded-xl" placeholder="TZS" onChange={(e)=>setFormData({...formData, mTpesa: e.target.value})} />
-              </div>
-              <div className="flex flex-col">
-                <label className="text-[10px] font-bold text-slate-400 mb-1 uppercase">Bank Deposit</label>
-                <input type="number" className="p-3 border rounded-xl" placeholder="TZS" onChange={(e)=>setFormData({...formData, bankDeposit: e.target.value})} />
-              </div>
-              <div className="flex flex-col">
-                <label className="text-[10px] font-bold text-slate-400 mb-1 uppercase">Petty Expenses</label>
-                <input type="number" className="p-3 border rounded-xl" placeholder="TZS" onChange={(e)=>setFormData({...formData, expenses: e.target.value})} />
-              </div>
-            </div>
-
-            {/* Variance Alert */}
-            <div className={`mt-6 p-4 rounded-xl flex justify-between items-center ${variance === 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-              <span className="font-bold uppercase text-xs">Variance (Balance):</span>
-              <span className="text-xl font-black">TZS {variance.toLocaleString()}</span>
-            </div>
-          </div>
-
-          <button className="w-full bg-red-600 text-white py-5 rounded-2xl font-black text-lg hover:bg-red-700 transition shadow-xl shadow-red-100 uppercase tracking-tighter">
-            Confirm & Push to HQ Master
+          <button style={{ width: '100%', padding: '20px', backgroundColor: '#dc2626', color: 'white', border: 'none', borderRadius: '15px', fontWeight: '900', cursor: 'pointer', boxShadow: '0 10px 30px rgba(220, 38, 38, 0.4)' }}>
+            SUBMIT & LOCK REPORT
           </button>
-        </form>
+        </div>
       </div>
     </div>
   );

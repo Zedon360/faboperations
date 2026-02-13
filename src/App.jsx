@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { auth } from "./services/firebase";
-// Fixed: Capital 'C' and dot './' to match your explorer
+// Corrected: Path must match the folder name 'Components' exactly
 import Login from './Components/Login';
 import HQLayout from './Components/HQLayout';
 
@@ -16,7 +16,6 @@ function App() {
     return () => unsubscribe();
   }, []);
 
-  // Engaging in the moment: showing a loader instead of a white screen
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0b0f1a] flex items-center justify-center">
