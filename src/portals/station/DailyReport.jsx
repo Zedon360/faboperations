@@ -311,20 +311,30 @@ const DailyReport = () => {
       {/* Meter Readings */}
       <section style={{ ...card, borderLeft: `4px solid ${colors.blue}` }}>
         <h3 style={sectionTitle(colors.blue)}>METER READINGS</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
           {/* PMS Meter Readings */}
-          <div style={{ padding: '16px', backgroundColor: colors.greenBg, borderRadius: '12px' }}>
-            <h4 style={{ color: colors.green, fontSize: '0.85rem', marginBottom: '12px', fontWeight: '700' }}>PMS (PETROL)</h4>
+          <div style={{ padding: '24px', backgroundColor: '#ffffff', borderRadius: '16px', border: `1px solid ${colors.green}30`, boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.03)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '16px', borderBottom: `1px solid ${colors.divider}` }}>
+              <h4 style={{ color: colors.green, fontSize: '1.1rem', margin: 0, fontWeight: '800', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span style={{ backgroundColor: colors.greenBg, padding: '8px 12px', borderRadius: '8px', fontSize: '0.9rem' }}>PMS</span>
+                <span style={{ color: colors.heading }}>PETROL</span>
+              </h4>
+              <div style={{ textAlign: 'right' }}>
+                <span style={{ fontSize: '0.75rem', color: colors.mutedText, fontWeight: '700', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>Total Volume</span>
+                <span style={{ fontSize: '1.25rem', fontWeight: '900', color: colors.green }}>{totals.pmsNet.toLocaleString()} L</span>
+              </div>
+            </div>
+
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 8px' }}>
                 <thead>
                   <tr>
-                    <th style={{ ...lbl, textAlign: 'left', padding: '8px 4px' }}>Pump</th>
-                    <th style={{ ...lbl, textAlign: 'left', padding: '8px 4px' }}>Opening</th>
-                    <th style={{ ...lbl, textAlign: 'left', padding: '8px 4px' }}>Closing</th>
-                    <th style={{ ...lbl, textAlign: 'left', padding: '8px 4px' }}>Test</th>
-                    <th style={{ ...lbl, textAlign: 'right', padding: '8px 4px' }}>Gross</th>
-                    <th style={{ ...lbl, textAlign: 'right', padding: '8px 4px' }}>Net</th>
+                    <th style={{ color: colors.mutedText, fontSize: '0.75rem', fontWeight: '700', letterSpacing: '0.05em', textAlign: 'left', padding: '0 16px 8px 16px' }}>PUMP</th>
+                    <th style={{ color: colors.mutedText, fontSize: '0.75rem', fontWeight: '700', letterSpacing: '0.05em', textAlign: 'left', padding: '0 16px 8px 16px' }}>OPENING</th>
+                    <th style={{ color: colors.mutedText, fontSize: '0.75rem', fontWeight: '700', letterSpacing: '0.05em', textAlign: 'left', padding: '0 16px 8px 16px' }}>CLOSING</th>
+                    <th style={{ color: colors.mutedText, fontSize: '0.75rem', fontWeight: '700', letterSpacing: '0.05em', textAlign: 'left', padding: '0 16px 8px 16px' }}>TEST</th>
+                    <th style={{ color: colors.mutedText, fontSize: '0.75rem', fontWeight: '700', letterSpacing: '0.05em', textAlign: 'right', padding: '0 16px 8px 16px' }}>GROSS</th>
+                    <th style={{ color: colors.mutedText, fontSize: '0.75rem', fontWeight: '700', letterSpacing: '0.05em', textAlign: 'right', padding: '0 16px 8px 16px' }}>NET</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -332,40 +342,44 @@ const DailyReport = () => {
                     const gross = (Number(p.closing) || 0) - (Number(p.opening) || 0);
                     const net = gross - (Number(p.test) || 0);
                     return (
-                      <tr key={p.id} style={{ borderBottom: `1px solid ${colors.divider}` }}>
-                        <td style={{ padding: '8px 4px', fontWeight: 'bold', width: '60px', color: colors.heading }}>{p.id}</td>
-                        <td style={{ padding: '6px 4px' }}><input style={inp} type="number" value={p.opening || ''} onChange={e => updatePump('PMS', i, 'opening', e.target.value)} /></td>
-                        <td style={{ padding: '6px 4px' }}><input style={inp} type="number" value={p.closing || ''} onChange={e => updatePump('PMS', i, 'closing', e.target.value)} /></td>
-                        <td style={{ padding: '6px 4px' }}><input style={inp} type="number" value={p.test || ''} onChange={e => updatePump('PMS', i, 'test', e.target.value)} /></td>
-                        <td style={{ padding: '6px 4px', textAlign: 'right', color: colors.mutedText, fontWeight: '500' }}>{gross.toLocaleString()}</td>
-                        <td style={{ padding: '6px 4px', textAlign: 'right', color: colors.green, fontWeight: '700' }}>{net.toLocaleString()}</td>
+                      <tr key={p.id} style={{ backgroundColor: colors.cardBg, transition: 'all 0.2s' }}>
+                        <td style={{ padding: '12px 16px', fontWeight: '800', color: colors.heading, borderTopLeftRadius: '10px', borderBottomLeftRadius: '10px', width: '80px' }}>{p.id}</td>
+                        <td style={{ padding: '8px 16px' }}><input style={{ ...inp, backgroundColor: '#ffffff', border: '1px solid #e2e8f0', boxShadow: 'none', fontWeight: '600' }} type="number" value={p.opening || ''} onChange={e => updatePump('PMS', i, 'opening', e.target.value)} /></td>
+                        <td style={{ padding: '8px 16px' }}><input style={{ ...inp, backgroundColor: '#ffffff', border: '1px solid #e2e8f0', boxShadow: 'none', fontWeight: '600' }} type="number" value={p.closing || ''} onChange={e => updatePump('PMS', i, 'closing', e.target.value)} /></td>
+                        <td style={{ padding: '8px 16px' }}><input style={{ ...inp, backgroundColor: '#ffffff', border: '1px solid #e2e8f0', boxShadow: 'none', fontWeight: '600' }} type="number" value={p.test || ''} onChange={e => updatePump('PMS', i, 'test', e.target.value)} /></td>
+                        <td style={{ padding: '12px 16px', textAlign: 'right', color: colors.mutedText, fontWeight: '600', fontSize: '0.95rem' }}>{gross.toLocaleString()}</td>
+                        <td style={{ padding: '12px 16px', textAlign: 'right', color: colors.green, fontWeight: '800', fontSize: '1.1rem', borderTopRightRadius: '10px', borderBottomRightRadius: '10px' }}>{net.toLocaleString()}</td>
                       </tr>
                     );
                   })}
                 </tbody>
-                <tfoot>
-                  <tr style={{ borderTop: `2px solid ${colors.green}` }}>
-                    <td colSpan={4} style={{ padding: '12px 4px', fontWeight: '800', fontSize: '0.85rem', color: colors.heading }}>TOTAL PMS</td>
-                    <td style={{ textAlign: 'right', fontWeight: '700', color: colors.mutedText }}>{totals.pmsGross.toLocaleString()} L</td>
-                    <td style={{ textAlign: 'right', fontWeight: '800', color: colors.green, fontSize: '0.95rem' }}>{totals.pmsNet.toLocaleString()} L</td>
-                  </tr>
-                </tfoot>
               </table>
             </div>
           </div>
+
           {/* AGO Meter Readings */}
-          <div style={{ padding: '16px', backgroundColor: colors.yellowLight, borderRadius: '12px' }}>
-            <h4 style={{ color: colors.yellow, fontSize: '0.85rem', marginBottom: '12px', fontWeight: '700' }}>AGO (DIESEL)</h4>
+          <div style={{ padding: '24px', backgroundColor: '#ffffff', borderRadius: '16px', border: `1px solid ${colors.yellow}30`, boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.03)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '16px', borderBottom: `1px solid ${colors.divider}` }}>
+              <h4 style={{ color: colors.yellow, fontSize: '1.1rem', margin: 0, fontWeight: '800', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span style={{ backgroundColor: colors.yellowLight, padding: '8px 12px', borderRadius: '8px', fontSize: '0.9rem' }}>AGO</span>
+                <span style={{ color: colors.heading }}>DIESEL</span>
+              </h4>
+              <div style={{ textAlign: 'right' }}>
+                <span style={{ fontSize: '0.75rem', color: colors.mutedText, fontWeight: '700', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>Total Volume</span>
+                <span style={{ fontSize: '1.25rem', fontWeight: '900', color: colors.yellow }}>{totals.agoNet.toLocaleString()} L</span>
+              </div>
+            </div>
+
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 8px' }}>
                 <thead>
                   <tr>
-                    <th style={{ ...lbl, textAlign: 'left', padding: '8px 4px' }}>Pump</th>
-                    <th style={{ ...lbl, textAlign: 'left', padding: '8px 4px' }}>Opening</th>
-                    <th style={{ ...lbl, textAlign: 'left', padding: '8px 4px' }}>Closing</th>
-                    <th style={{ ...lbl, textAlign: 'left', padding: '8px 4px' }}>Test</th>
-                    <th style={{ ...lbl, textAlign: 'right', padding: '8px 4px' }}>Gross</th>
-                    <th style={{ ...lbl, textAlign: 'right', padding: '8px 4px' }}>Net</th>
+                    <th style={{ color: colors.mutedText, fontSize: '0.75rem', fontWeight: '700', letterSpacing: '0.05em', textAlign: 'left', padding: '0 16px 8px 16px' }}>PUMP</th>
+                    <th style={{ color: colors.mutedText, fontSize: '0.75rem', fontWeight: '700', letterSpacing: '0.05em', textAlign: 'left', padding: '0 16px 8px 16px' }}>OPENING</th>
+                    <th style={{ color: colors.mutedText, fontSize: '0.75rem', fontWeight: '700', letterSpacing: '0.05em', textAlign: 'left', padding: '0 16px 8px 16px' }}>CLOSING</th>
+                    <th style={{ color: colors.mutedText, fontSize: '0.75rem', fontWeight: '700', letterSpacing: '0.05em', textAlign: 'left', padding: '0 16px 8px 16px' }}>TEST</th>
+                    <th style={{ color: colors.mutedText, fontSize: '0.75rem', fontWeight: '700', letterSpacing: '0.05em', textAlign: 'right', padding: '0 16px 8px 16px' }}>GROSS</th>
+                    <th style={{ color: colors.mutedText, fontSize: '0.75rem', fontWeight: '700', letterSpacing: '0.05em', textAlign: 'right', padding: '0 16px 8px 16px' }}>NET</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -373,24 +387,17 @@ const DailyReport = () => {
                     const gross = (Number(p.closing) || 0) - (Number(p.opening) || 0);
                     const net = gross - (Number(p.test) || 0);
                     return (
-                      <tr key={p.id} style={{ borderBottom: `1px solid ${colors.divider}` }}>
-                        <td style={{ padding: '8px 4px', fontWeight: 'bold', width: '60px', color: colors.heading }}>{p.id}</td>
-                        <td style={{ padding: '6px 4px' }}><input style={inp} type="number" value={p.opening || ''} onChange={e => updatePump('AGO', i, 'opening', e.target.value)} /></td>
-                        <td style={{ padding: '6px 4px' }}><input style={inp} type="number" value={p.closing || ''} onChange={e => updatePump('AGO', i, 'closing', e.target.value)} /></td>
-                        <td style={{ padding: '6px 4px' }}><input style={inp} type="number" value={p.test || ''} onChange={e => updatePump('AGO', i, 'test', e.target.value)} /></td>
-                        <td style={{ padding: '6px 4px', textAlign: 'right', color: colors.mutedText, fontWeight: '500' }}>{gross.toLocaleString()}</td>
-                        <td style={{ padding: '6px 4px', textAlign: 'right', color: colors.yellow, fontWeight: '700' }}>{net.toLocaleString()}</td>
+                      <tr key={p.id} style={{ backgroundColor: colors.cardBg, transition: 'all 0.2s' }}>
+                        <td style={{ padding: '12px 16px', fontWeight: '800', color: colors.heading, borderTopLeftRadius: '10px', borderBottomLeftRadius: '10px', width: '80px' }}>{p.id}</td>
+                        <td style={{ padding: '8px 16px' }}><input style={{ ...inp, backgroundColor: '#ffffff', border: '1px solid #e2e8f0', boxShadow: 'none', fontWeight: '600' }} type="number" value={p.opening || ''} onChange={e => updatePump('AGO', i, 'opening', e.target.value)} /></td>
+                        <td style={{ padding: '8px 16px' }}><input style={{ ...inp, backgroundColor: '#ffffff', border: '1px solid #e2e8f0', boxShadow: 'none', fontWeight: '600' }} type="number" value={p.closing || ''} onChange={e => updatePump('AGO', i, 'closing', e.target.value)} /></td>
+                        <td style={{ padding: '8px 16px' }}><input style={{ ...inp, backgroundColor: '#ffffff', border: '1px solid #e2e8f0', boxShadow: 'none', fontWeight: '600' }} type="number" value={p.test || ''} onChange={e => updatePump('AGO', i, 'test', e.target.value)} /></td>
+                        <td style={{ padding: '12px 16px', textAlign: 'right', color: colors.mutedText, fontWeight: '600', fontSize: '0.95rem' }}>{gross.toLocaleString()}</td>
+                        <td style={{ padding: '12px 16px', textAlign: 'right', color: colors.yellow, fontWeight: '800', fontSize: '1.1rem', borderTopRightRadius: '10px', borderBottomRightRadius: '10px' }}>{net.toLocaleString()}</td>
                       </tr>
                     );
                   })}
                 </tbody>
-                <tfoot>
-                  <tr style={{ borderTop: `2px solid ${colors.yellow}` }}>
-                    <td colSpan={4} style={{ padding: '12px 4px', fontWeight: '800', fontSize: '0.85rem', color: colors.heading }}>TOTAL AGO</td>
-                    <td style={{ textAlign: 'right', fontWeight: '700', color: colors.mutedText }}>{totals.agoGross.toLocaleString()} L</td>
-                    <td style={{ textAlign: 'right', fontWeight: '800', color: colors.yellow, fontSize: '0.95rem' }}>{totals.agoNet.toLocaleString()} L</td>
-                  </tr>
-                </tfoot>
               </table>
             </div>
           </div>
