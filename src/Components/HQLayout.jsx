@@ -1,21 +1,26 @@
 import React, { useState } from 'react';
-import { auth } from '../services/firebase';
-import { signOut } from 'firebase/auth';
 
 // Ensuring paths are lowercase and relative
 import DailyReport from '../portals/station/DailyReport';
 import FleetManager from '../portals/fleet/FleetManager';
 
-const HQLayout = ({ user }) => {
+const HQLayout = ({ user, onLogoutSuccess }) => {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
 
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-    } catch (error) {
-      console.error("Logout error:", error);
+  // --- THE MASTER LOGOUT LOGIC ---
+  const handleLogout = () => {
+    // 1. Safisha kila kitu kwenye memory ya browser
+    localStorage.clear();
+    sessionStorage.clear();
+
+    // 2. Ikiwa unatumia function kutoka App.jsx, iite hapa
+    if (onLogoutSuccess) {
+      onLogoutSuccess();
     }
+
+    // 3. Force the app to the login screen by reloading the root
+    window.location.href = "/";
   };
 
   const renderContent = () => {
@@ -26,7 +31,7 @@ const HQLayout = ({ user }) => {
             <h2 style={{ fontSize: '2rem', fontWeight: '800', color: 'white' }}>SYSTEM OVERVIEW</h2>
             <div style={{ height: '2px', width: '60px', background: '#dc2626', margin: '15px 0' }}></div>
             <p style={{ color: '#94a3b8', fontSize: '1.1rem' }}>
-              Welcome back, Master Admin {user?.displayName}.
+              Welcome back, Master Admin {user?.displayName || 'Zedon'}.
             </p>
           </div>
         );
@@ -92,6 +97,7 @@ const HQLayout = ({ user }) => {
           </button>
         </nav>
 
+        {/* LOG OUT BUTTON SECTION */}
         <div style={{ padding: '20px', borderTop: '1px solid #1e293b' }}>
           <button 
             onClick={handleLogout}
@@ -104,7 +110,8 @@ const HQLayout = ({ user }) => {
               borderRadius: '12px', 
               cursor: 'pointer', 
               fontWeight: '900', 
-              textTransform: 'uppercase'
+              textTransform: 'uppercase',
+              boxShadow: '0 4px 15px rgba(220, 38, 38, 0.3)'
             }}
           >
             {isSidebarOpen ? 'Log Out' : 'OFF'}
@@ -134,10 +141,22 @@ const HQLayout = ({ user }) => {
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
             <div style={{ textAlign: 'right' }}>
-              <p style={{ margin: 0, fontSize: '14px', fontWeight: '800' }}>{user?.displayName}</p>
+              <p style={{ margin: 0, fontSize: '14px', fontWeight: '800' }}>{user?.displayName || 'Zedon'}</p>
               <p style={{ margin: 0, fontSize: '10px', color: '#dc2626', fontWeight: 'bold' }}>SECURE ACCESS</p>
             </div>
-            <img src={user?.photoURL} alt="User" style={{ width: '45px', height: '45px', borderRadius: '12px', border: '2px solid #dc2626' }} />
+            <div style={{ 
+              width: '45px', 
+              height: '45px', 
+              borderRadius: '12px', 
+              border: '2px solid #dc2626',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: '#1e293b',
+              fontWeight: 'bold'
+            }}>
+              Z
+            </div>
           </div>
         </header>
 

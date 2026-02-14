@@ -1,21 +1,34 @@
 import React, { useState } from 'react';
-import { auth } from '../services/firebase'; // Matches your folder structure
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 
 const Login = ({ onLoginSuccess }) => {
+  const [username, setUsername] = useState(''); // Changed from email to username
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleGoogleLogin = async () => {
-    const provider = new GoogleAuthProvider();
-    try {
-      const result = await signInWithPopup(auth, provider);
-      if (onLoginSuccess) {
-        onLoginSuccess(result.user);
+  const handleLogin = (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    // EXACT CREDENTIAL CHECK
+    // This removes the "noise" and bypasses Firebase network errors
+    setTimeout(() => {
+      if (username === "Zedon" && password === "Zedon123") {
+        const mockUser = {
+          uid: 'admin-zedon',
+          displayName: 'Zedon',
+          email: 'admin@fabintl.com'
+        };
+        
+        if (onLoginSuccess) {
+          onLoginSuccess(mockUser);
+        }
+      } else {
+        setError("Invalid Admin Credentials.");
+        setLoading(false);
       }
-    } catch (err) {
-      console.error("Login Error:", err);
-      setError("Failed to sign in. Please try again.");
-    }
+    }, 800); // Small delay to keep the 'loading' feel
   };
 
   return (
@@ -34,22 +47,37 @@ const Login = ({ onLoginSuccess }) => {
         <div className="text-center mb-8">
           <h2 className="text-white text-xl font-bold">Secure Portal Access</h2>
           <p className="text-slate-500 text-sm mt-2">
-            Please sign in with your company Google account to continue to the HQ Dashboard.
+            Sign in with your credentials to continue to the HQ Dashboard.
           </p>
         </div>
         
-        <div className="space-y-4">
-          <button 
-            onClick={handleGoogleLogin}
-            type="button"
-            className="w-full bg-white hover:bg-slate-100 text-black font-black py-4 rounded-xl transition flex items-center justify-center gap-3 uppercase text-sm shadow-xl shadow-white/5"
-          >
-            <img 
-              src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" 
-              alt="Google" 
-              className="w-5 h-5" 
+        <form onSubmit={handleLogin} className="space-y-4">
+          <div>
+            <input
+              type="text"
+              placeholder="Username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="w-full bg-slate-800/50 border border-slate-700 text-white placeholder-slate-500 py-4 px-4 rounded-xl text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 transition"
             />
-            Sign In with Google
+          </div>
+
+          <div>
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full bg-slate-800/50 border border-slate-700 text-white placeholder-slate-500 py-4 px-4 rounded-xl text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 transition"
+            />
+          </div>
+
+          <button 
+            type="submit"
+            disabled={loading || !username || !password}
+            className="w-full bg-red-600 hover:bg-red-700 disabled:bg-red-600/50 disabled:cursor-not-allowed text-white font-black py-4 rounded-xl transition uppercase text-sm shadow-xl shadow-red-600/10"
+          >
+            {loading ? 'Verifying...' : 'Sign In'}
           </button>
 
           {error && (
@@ -63,11 +91,10 @@ const Login = ({ onLoginSuccess }) => {
               Authorized FAB Personnel Only • {new Date().getFullYear()}
             </p>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );
 };
 
-// Crucial: This prevents the "Does not provide an export named default" error
 export default Login;
